@@ -628,7 +628,7 @@ def build_visit_payload(
                 filled_with_well_water_flag = st.checkbox("Well water was used")
                 chlorine_added_before_photo = st.checkbox("Chlorine was already added before this photo")
 
-        submitted = st.form_submit_button("⚡ Get Visit Summary", use_container_width=True, type="primary")
+        submitted = st.form_submit_button("⚡ Calculate Dose", use_container_width=True, type="primary")
 
         # Checklist & notes defaults — collected on results page instead
         checklist_debris_removed = checklist_pool_brushed = False
