@@ -609,19 +609,33 @@ def build_visit_payload(
         )
 
         # ── SECTION 3: Pool Details (collapsed) — affects plan output ────────
+        # Pre-fill from last visit if available
+        _lv = latest_visit or {}
+        _prior_size    = _lv.get("pool_size_bucket", "medium") or "medium"
+        _prior_gallons = int(_lv.get("estimated_gallons") or 15000)
+        _prior_type    = _lv.get("pool_type", "in_ground") or "in_ground"
+        _prior_shape   = _lv.get("pool_shape", "rectangle") or "rectangle"
+        _prior_filter  = _lv.get("filter_type", "cartridge") or "cartridge"
+        _prior_wsrc    = _lv.get("water_source", "unknown") or "unknown"
+
+        _caption = "Pre-filled from last visit — update if anything has changed." if latest_visit else "Affects chemical amounts — update if different from the defaults."
         with st.expander("⚙️ Pool Details", expanded=False):
-            st.caption("Affects chemical amounts — update if different from the defaults.")
+            st.caption(_caption)
             pd1, pd2 = st.columns(2)
             with pd1:
-                pool_size_bucket = _labeled_select("Pool Size", _POOL_SIZE, "medium", "ps_size")
-                estimated_gallons = st.number_input("Estimated Gallons", min_value=0, value=15000, step=1000)
-                pool_type = st.selectbox("Pool Type", ["in_ground", "above_ground"],
+                pool_size_bucket = _labeled_select("Pool Size", _POOL_SIZE, _prior_size, "ps_size")
+                estimated_gallons = st.number_input("Estimated Gallons", min_value=0, value=_prior_gallons, step=1000)
+                _type_opts = ["in_ground", "above_ground"]
+                pool_type = st.selectbox("Pool Type", _type_opts,
+                                         index=_type_opts.index(_prior_type) if _prior_type in _type_opts else 0,
                                          format_func=lambda x: "In-Ground" if x == "in_ground" else "Above-Ground")
-                pool_shape = st.selectbox("Pool Shape", ["rectangle", "kidney", "freeform", "other"],
+                _shape_opts = ["rectangle", "kidney", "freeform", "other"]
+                pool_shape = st.selectbox("Pool Shape", _shape_opts,
+                                          index=_shape_opts.index(_prior_shape) if _prior_shape in _shape_opts else 0,
                                           format_func=str.title)
             with pd2:
-                filter_type   = _labeled_select("Filter Type", _FILTER, "cartridge", "pd_filter")
-                water_source  = _labeled_select("Water Source", _WATER_SOURCE, "unknown", "pd_wsrc")
+                filter_type   = _labeled_select("Filter Type", _FILTER, _prior_filter, "pd_filter")
+                water_source  = _labeled_select("Water Source", _WATER_SOURCE, _prior_wsrc, "pd_wsrc")
                 water_level   = st.selectbox("Water Level", ["low", "normal", "high"],
                                              index=1, format_func=str.title)
                 recent_fill_flag           = st.checkbox("Pool was recently filled")
