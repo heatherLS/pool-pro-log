@@ -723,6 +723,11 @@ def main() -> None:
 
     import os
     show_debug = os.environ.get("POOL_DEBUG", "").lower() in ("1", "true", "yes")
+    try:
+        if st.secrets.get("POOL_DEBUG", "") in ("1", "true", "yes"):
+            show_debug = True
+    except Exception:
+        pass
 
     allow_field_workarounds = True
 
