@@ -724,16 +724,6 @@ def main() -> None:
     import os
     show_debug = os.environ.get("POOL_DEBUG", "").lower() in ("1", "true", "yes")
 
-    field_mode = st.toggle(
-        "⚡ Field Mode",
-        value=st.session_state.get("field_mode_val", False),
-        help="Hides explanations — shows only chemicals, amounts, and order.",
-        key="field_mode_toggle",
-    )
-    st.session_state["field_mode_val"] = field_mode
-    if field_mode:
-        st.caption("Field Mode ON — only dosing steps shown.")
-
     allow_field_workarounds = True
 
     visit_setup = build_visit_setup_section()
@@ -810,31 +800,6 @@ def main() -> None:
     severity = final_result.get("ai_severity", 1)
     escalation = final_result.get("rules_escalation_flag", False)
     visit_num = account_data.get("visits_in_recovery", 0)
-
-    # FIELD MODE: show only dosing lines and stop
-    if field_mode:
-        action_steps_fm = final_result.get("ai_action_plan", [])
-        dosing_lines = [s for s in action_steps_fm if s.startswith("→") or s.startswith("⚠️")]
-        if dosing_lines:
-            st.markdown("### ⚡ Chemicals / Amounts / Order")
-            for line in dosing_lines:
-                if line.startswith("→"):
-                    st.markdown(f"<p style='font-size:18px;font-weight:bold;margin:4px 0'>{line}</p>", unsafe_allow_html=True)
-                else:
-                    st.warning(line)
-        else:
-            st.info("No chemical additions needed this visit.")
-
-        # Still allow saving in field mode
-        st.divider()
-        st.markdown("### 📊 Log This Visit")
-        if st.button("✅ Save to Recovery Tracker", type="primary", key="fm_save"):
-            success, msg = upsert_recovery_row(
-                visit_data, final_result, account_data, {}, "",
-                pool_photo=None, strip_photo=None,
-            )
-            st.success(f"✅ {msg}") if success else st.warning(f"⚠️ {msg}")
-        return
 
     st.markdown("### 🎯 Focus for This Visit")
     st.success(final_result.get("ai_today_priority", ""))
