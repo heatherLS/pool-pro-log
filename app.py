@@ -30,24 +30,6 @@ st.set_page_config(
     layout="wide",
 )
 
-# Pool water background
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background: linear-gradient(160deg, #ebf8ff 0%, #bee3f8 45%, #90cdf4 100%);
-        min-height: 100vh;
-    }
-    /* Keep cards and form inputs readable on the gradient */
-    .stForm, [data-testid="stExpander"] {
-        background: rgba(255,255,255,0.75);
-        border-radius: 8px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 
 # -----------------------------
 # HELPERS
