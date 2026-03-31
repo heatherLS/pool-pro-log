@@ -78,7 +78,13 @@ def analyze_pool_images(
 ) -> Dict[str, Any]:
 
     if client is None:
-        client = OpenAI()
+        # Pick up OPENAI_API_KEY from st.secrets when running on Streamlit Cloud
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("OPENAI_API_KEY") or os.getenv("OPENAI_API_KEY")
+        except Exception:
+            api_key = os.getenv("OPENAI_API_KEY")
+        client = OpenAI(api_key=api_key) if api_key else OpenAI()
 
     content = [
         {"type": "input_text", "text": USER_PROMPT},

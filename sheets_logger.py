@@ -55,6 +55,22 @@ VISIT_COLUMNS = [
 ]
 
 
+def _get_creds_from_secrets(scopes: list):
+    """Return Google OAuth Credentials from st.secrets, or None if not available."""
+    try:
+        import streamlit as st
+        from google.oauth2.service_account import Credentials
+        if "google_credentials" in st.secrets:
+            creds_dict = dict(st.secrets["google_credentials"])
+            # Streamlit escapes newlines in private_key — unescape them
+            if "private_key" in creds_dict:
+                creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            return Credentials.from_service_account_info(creds_dict, scopes=scopes)
+    except Exception:
+        pass
+    return None
+
+
 def _get_client():
     """Return an authenticated gspread client, or None if not configured."""
     try:
@@ -63,28 +79,38 @@ def _get_client():
     except ImportError:
         return None, "gspread not installed. Run: pip install gspread google-auth"
 
-    # 1. Explicit env var path (service account JSON)
+    scopes = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive",
+    ]
+
+    # 1. Streamlit Cloud secrets (st.secrets["google_credentials"])
+    creds = _get_creds_from_secrets(scopes)
+    if creds:
+        try:
+            client = gspread.authorize(creds)
+            return client, None
+        except Exception as e:
+            return None, f"Credentials error (st.secrets): {e}"
+
+    # 2. Explicit env var path (service account JSON)
     creds_file = os.environ.get("GOOGLE_SHEETS_CREDENTIALS_FILE")
     if creds_file and os.path.exists(creds_file):
         try:
-            scopes = [
-                "https://spreadsheets.google.com/feeds",
-                "https://www.googleapis.com/auth/drive",
-            ]
             creds = Credentials.from_service_account_file(creds_file, scopes=scopes)
             client = gspread.authorize(creds)
             return client, None
         except Exception as e:
             return None, f"Credentials error: {e}"
 
-    # 2. Default gspread service account (~/.config/gspread/service_account.json)
+    # 3. Default gspread service account (~/.config/gspread/service_account.json)
     try:
         client = gspread.service_account()
         return client, None
     except Exception:
         pass
 
-    # 3. OAuth browser flow (prompts once, caches token)
+    # 4. OAuth browser flow (prompts once, caches token)
     try:
         client = gspread.oauth()
         return client, None
@@ -100,6 +126,14 @@ def _get_drive_service():
     except ImportError:
         return None
 
+    drive_scopes = ["https://www.googleapis.com/auth/drive"]
+
+    # 1. Streamlit Cloud secrets
+    creds = _get_creds_from_secrets(drive_scopes)
+    if creds:
+        return build("drive", "v3", credentials=creds, cache_discovery=False)
+
+    # 2. Local file fallback
     creds_file = (
         os.environ.get("GOOGLE_SHEETS_CREDENTIALS_FILE")
         or os.path.expanduser("~/.config/gspread/service_account.json")
@@ -107,8 +141,7 @@ def _get_drive_service():
     if not os.path.exists(creds_file):
         return None
 
-    scopes = ["https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_service_account_file(creds_file, scopes=scopes)
+    creds = Credentials.from_service_account_file(creds_file, scopes=drive_scopes)
     return build("drive", "v3", credentials=creds, cache_discovery=False)
 
 
