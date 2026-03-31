@@ -788,7 +788,7 @@ def main() -> None:
         visit_data   = st.session_state["cached_visit_data"]
 
     else:
-        st.info("Select the account, fill in the condition, and tap **Get Visit Summary**.")
+        st.info("Select the account, fill in the condition, and tap **Calculate Dose**.")
         return
 
     st.divider()
