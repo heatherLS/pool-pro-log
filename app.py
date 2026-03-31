@@ -722,7 +722,7 @@ def main() -> None:
     st.caption("Field Dosing Calculator — Snap a photo, get your plan, copy-paste the customer text. Done in under a minute.")
 
     import os
-    show_debug = True  # TEMP: always show debug to diagnose cloud issue
+    show_debug = os.environ.get("POOL_DEBUG", "").lower() in ("1", "true", "yes")
 
     allow_field_workarounds = True
 
