@@ -722,12 +722,7 @@ def main() -> None:
     st.caption("Field Dosing Calculator — Snap a photo, get your plan, copy-paste the customer text. Done in under a minute.")
 
     import os
-    show_debug = os.environ.get("POOL_DEBUG", "").lower() in ("1", "true", "yes")
-    try:
-        if st.secrets.get("POOL_DEBUG", "") in ("1", "true", "yes"):
-            show_debug = True
-    except Exception:
-        pass
+    show_debug = True  # TEMP: always show debug to diagnose cloud issue
 
     allow_field_workarounds = True
 
